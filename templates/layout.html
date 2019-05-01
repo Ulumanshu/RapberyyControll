@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">   
+    {% if title %}
+        <title>R.Command - {{ title }}</title>
+    {% else %}
+        <title>R.Command</title>
+    {% endif %}
+</head>
+<body>
+    <div class="container">
+        <div class="header clearfix">
+            <nav>
+                <ul class="nav nav-pills pull-left">
+                    <li role="presentation" class="active"><a href="/Home"> HOME </a></li>            
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <center>
+        <h3 class="text-muted"> -="<"Shin Home Site">"=- </h3>
+        {% block content %}
+        {% endblock content %}
+        <footer class="footer">    
+        </footer>
+    </center>
+</body>
+</html>
