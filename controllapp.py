@@ -12,6 +12,7 @@ app.debug = True
 GPIO.setmode(GPIO.BOARD)
 pin1 = 7
 pin2 = 11
+pins = [7, 11]
 GPIO.setup(pin1, GPIO.OUT, initial = 0)
 GPIO.setup(pin2, GPIO.OUT, initial = 0)
 
@@ -20,40 +21,50 @@ def read_temp():
     temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read()
     return "GPU temperature is {}".format(temp[5:])
     
-def switch_on(pin):
+def switch_on(pin, pin_id):
+    res= {"id": False, 'value': False}
     GPIO.output(pin, 1)
+    res.update({"id": pin_id, 'value': 'ON'})
+    return jsonify(
+        success=True,
+        data=res
+    )
     
-def switch_off(pin):
+def switch_off(pin, pin_id):
+    res= {"id": False, 'value': False}
     GPIO.output(pin, 0)
+    res.update({"id": pin_id, 'value': 'OFF'})
+    return jsonify(
+        success=True,
+        data=res
+    )    
 
-def check_state(pin):
-    if pin:
-        state = GPIO.input(pin)
-    else:
-        state = False
+def check_state(pin):    
+    state = GPIO.input(pin)    
     return state
 
 @app.route("/")
 def hello():
-    res = 'pins'
-    return render_template('home.html', title="Home", temp=read_temp(), value=res)
+    res7 = check_state(pin1) and "ON" or "OFF"
+    res11 = check_state(pin2) and "ON" or "OFF"
+    return render_template(
+        'home.html', title="Home",
+        temp=read_temp(),
+        pin7s=res7,
+        pin11s=res11
+    )
     
-@app.route("/command", methods=["GET", "POST"])
-def command():
-    res= {"id": False, 'value': False}
-    if flask.request.method == "GET":
-        response = dict(request.args)
-        pin_id = response.get('id') and response.get('id')[0] or False
-        if pin_id:
-            pin = pin_id[3:].isdigit() and int(pin_id[3:]) or False            
-            state = check_state(pin)
-            if state:
-                switch_off(pin)
-                res.update({"id": pin_id, 'value': 'OFF'})
-            else:
-                switch_on(pin)
-                res.update({"id": pin_id, 'value': 'ON'})
-    return render_template('home.html', title="Home", temp=read_temp(), value=jsonify(res))
+@app.route("/command/<string:pin_id>", methods=["GET"])
+def command(pin_id):    
+    pin = pin_id[3:].isdigit() and int(pin_id[3:]) or False
+    if pin in pins:            
+        state = check_state(pin)
+        if state:
+            return switch_off(pin, pin_id)                
+        else:
+            return switch_on(pin, pin_id)
+    else:
+        return jsonify(success=False)    
     
 if __name__ == "__main__":
     print("Starting!...")

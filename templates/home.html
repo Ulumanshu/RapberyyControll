@@ -4,12 +4,59 @@
     <span>{{ temp }}</span>    
 </div>
 <div>
-    <button type="button" id="pin7" onclick="execute_command(this, event)">Pin 7 {{ value }}</button>
+    <h3>Individual Pin Controll And Status</h3>    
+</div>
+<div align="left">
+    <table>
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="pin7" onclick="execute_command(this, event)">
+                        Pin 7
+                    </button>
+                </div>
+            </td>
+            <td>
+                <aside id="pin7status">                    
+                    {{ pin7s }}
+                </aside>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="pin11" onclick="execute_command(this, event)">
+                        Pin 11
+                    </button>
+                </div>
+            </td>
+            <td>
+                <aside id="pin11status">                    
+                    {{ pin11s }}
+                </aside>
+            </td>
+        </tr>
+    </table>
 </div>
 <div>
-    <button type="button" id="pin11" onclick="execute_command(this, event)">Pin 11 {{ value }}</button>
+    <h3>Fun Functions</h3>    
 </div>
-
+<div align="left">
+    <table>
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="blink" onclick="execute_blink(this, event)">
+                        Blink
+                    </button>
+                </div>
+            </td>
+            <td>
+                <input id="blink_count" type="range" min="1" max="1000" defaultValue="500">          
+            </td>
+        </tr>       
+    </table>
+</div>
 <script type="text/javascript">
     ///////////////////////////////////////////////////////////////////
     /// ***GLOBALS*** ///
@@ -21,14 +68,40 @@
     ///////////////////////////////////////////////////////////////////
     function execute_command(id, event) {
         event.preventDefault();
-        fetch(command_url + "?" + "id=" + id.id).then(function(response) {
-          return response.json();
-        }).then(function(data) {
-          console.log(data);
-        }).catch(function(err) {
-          console.log(err);
+        fetch(command_url + "/" + id.id).then(function(response) {          
+            return response.json();
+        }).then(function(respj) {            
+            document.getElementById(respj.data.id + "status").innerHTML = respj.data.value;
+        }).catch(function() {
+            console.log("Error!");
         });
-    };   
+    };
+    ///////////////////////////////////////////////////////////////////
+    function push_butt(butt) {
+        butt.click();
+    };
+    function timeout(range, time, callback){
+        var i = range[0];                
+        push_butt(pin7);
+        Loop();
+        function Loop(){
+            setTimeout(function(){
+                i++;
+                if (i<range[1]){
+                    push_butt(pin11);
+                    Loop();
+                };
+            }, time*1000)
+        };    
+    };
+   
+    ///////////////////////////////////////////////////////////////////
+    function execute_blink() {
+        var count = document.getElementById("blink_count").value;
+        var pin7 = document.getElementById("pin7");
+        var pin11 = document.getElementById("pin11");       
+        timeout([0, count], 1, pin7, pin11);
+    };
     ///////////////////////////////////////////////////////////////////
 </script>
 {% endblock content %}
