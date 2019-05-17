@@ -54,6 +54,9 @@
             <td>
                 <input id="blink_count" type="range" min="1" max="1000" defaultValue="500">          
             </td>
+            <td>
+                <input id="time_interval" type="range" min="100" max="2000" defaultValue="500">          
+            </td>
         </tr>       
     </table>
 </div>
@@ -62,7 +65,8 @@
     /// ***GLOBALS*** ///
     ///////////////////////////////////////////////////////////////////
     var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-    var command_url = $SCRIPT_ROOT + "/command"    
+    var command_url = $SCRIPT_ROOT + "/command"
+    var currentInterval = null;    
     ///////////////////////////////////////////////////////////////////
     /// ***Functions($)*** ///
     ///////////////////////////////////////////////////////////////////
@@ -80,28 +84,34 @@
     function push_butt(butt) {
         butt.click();
     };
-    function timeout(range, time, callback){
-        var i = range[0];                
-        push_butt(pin7);
-        Loop();
-        function Loop(){
-            setTimeout(function(){
-                i++;
-                if (i<range[1]){
-                    push_butt(pin11);
-                    Loop();
-                };
-            }, time*1000)
-        };    
-    };
-   
+    ///////////////////////////////////////////////////////////////////    
+    function timeout(range, time, action) {    
+        if (currentInterval) {
+            clearInterval(currentInterval)
+        }
+        var counter = 0;
+        const loop = () => {
+            action();
+            counter += 1;
+            if (counter > range) {
+                counter = 0;
+                clearInterval(currentInterval);
+            }
+        }
+        currentInterval = setInterval(loop, time)
+    };   
     ///////////////////////////////////////////////////////////////////
     function execute_blink() {
         var count = document.getElementById("blink_count").value;
+        var interval = document.getElementById("time_interval").value;
         var pin7 = document.getElementById("pin7");
         var pin11 = document.getElementById("pin11");       
-        timeout([0, count], 1, pin7, pin11);
+        timeout(count, interval, () => {
+            push_butt(pin11);
+            push_butt(pin7);
+        }); 
     };
     ///////////////////////////////////////////////////////////////////
 </script>
 {% endblock content %}
+
